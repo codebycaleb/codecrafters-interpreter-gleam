@@ -16,7 +16,7 @@ pub fn main() {
         Ok(contents) -> {
           case string.length(contents) {
             // Uncomment this line to pass the first stage
-            // 0 -> io.println("EOF  null")
+            0 -> io.println("EOF  null")
             _ -> io.println_error("TODO: Implement scanner!")
           }
         }
