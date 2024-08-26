@@ -29,6 +29,12 @@ fn scan_token(scanner: Scanner) {
         ")" -> add_token(scanner, token_type.RightParen)
         "{" -> add_token(scanner, token_type.LeftBrace)
         "}" -> add_token(scanner, token_type.RightBrace)
+        "," -> add_token(scanner, token_type.Comma)
+        "." -> add_token(scanner, token_type.Dot)
+        "-" -> add_token(scanner, token_type.Minus)
+        "+" -> add_token(scanner, token_type.Plus)
+        ";" -> add_token(scanner, token_type.Semicolon)
+        "*" -> add_token(scanner, token_type.Star)
         _ -> panic
       }
   }
