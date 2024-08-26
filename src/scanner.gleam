@@ -27,6 +27,8 @@ fn scan_token(scanner: Scanner) {
       case token {
         "(" -> add_token(scanner, token_type.LeftParen)
         ")" -> add_token(scanner, token_type.RightParen)
+        "{" -> add_token(scanner, token_type.LeftBrace)
+        "}" -> add_token(scanner, token_type.RightBrace)
         _ -> panic
       }
   }
