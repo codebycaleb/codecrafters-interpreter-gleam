@@ -7,6 +7,7 @@
 # Learn more: https://codecrafters.io/program-interface
 
 set -e # Exit early if any commands fail
+set -o pipefail # Prevent masking pipe failures
 
 # Copied from .codecrafters/compile.sh
 #
