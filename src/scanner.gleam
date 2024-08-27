@@ -32,7 +32,7 @@ pub fn scan_tokens(scanner: Scanner) -> Scanner {
 }
 
 fn scan_token(scanner: Scanner) -> Scanner {
-  case advance_token(scanner) {
+  let scanned = case advance_token(scanner) {
     None -> add_token(scanner, Eof)
     Some(#(token, scanner)) ->
       case token {
@@ -51,12 +51,14 @@ fn scan_token(scanner: Scanner) -> Scanner {
         "<" -> peek_add_token(scanner, "=", Less, LessEqual)
         ">" -> peek_add_token(scanner, "=", Greater, GreaterEqual)
         "/" -> handle_slash(scanner)
-        " " | "\r" | "\t" -> scan_token(Scanner(..scanner, acc: []))
-        "\n" -> scan_token(Scanner(..scanner, acc: [], line: scanner.line + 1))
+        " " | "\r" | "\t" -> scanner
+        "\n" -> handle_newline(scanner)
 
         _ -> add_error(scanner, "Unexpected character: " <> token)
       }
   }
+  // clear acc
+  Scanner(..scanned, acc: [])
 }
 
 fn advance_token(scanner: Scanner) -> Option(#(String, Scanner)) {
@@ -111,7 +113,11 @@ fn handle_slash(scanner: Scanner) -> Scanner {
 fn consume_until_newline(scanner: Scanner) -> Scanner {
   case advance_token(scanner) {
     None -> scanner
-    Some(#("\n", peeked_scanner)) -> peeked_scanner
+    Some(#("\n", peeked_scanner)) -> handle_newline(peeked_scanner)
     Some(#(_, peeked_scanner)) -> consume_until_newline(peeked_scanner)
   }
+}
+
+fn handle_newline(scanner: Scanner) -> Scanner {
+  Scanner(..scanner, line: scanner.line + 1)
 }
