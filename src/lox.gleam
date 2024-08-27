@@ -24,8 +24,14 @@ pub fn main() {
 fn run_file(filename: String) {
   case simplifile.read(filename) {
     Ok(contents) -> {
-      run(contents)
-      exit(0)
+      case run(contents) {
+        scanner.Scanner(errors: [], ..) -> {
+          exit(0)
+        }
+        _ -> {
+          exit(65)
+        }
+      }
     }
     Error(error) -> {
       io.println_error("Error: " <> simplifile.describe_error(error))
@@ -35,11 +41,28 @@ fn run_file(filename: String) {
 }
 
 fn run(contents: String) {
-  contents
-  |> scanner.new
-  |> scanner.scan_tokens
-  |> list.map(fn(t) { token.to_string(t) })
-  |> list.each(fn(s) { io.println(s) })
+  let scanned =
+    contents
+    |> scanner.new
+    |> scanner.scan_tokens
+
+  print_errors(scanned.errors)
+  print_tokens(scanned.tokens)
+
+  scanned
+}
+
+fn print_tokens(tokens: List(token.Token)) {
+  tokens
+  |> list.reverse
+  |> list.map(token.to_string)
+  |> list.each(io.println)
+}
+
+fn print_errors(errors: List(String)) {
+  errors
+  |> list.reverse
+  |> list.each(io.println_error)
 }
 
 @external(erlang, "erlang", "halt")
