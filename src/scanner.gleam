@@ -6,7 +6,7 @@ import token.{type Token, BasicToken}
 import token_type.{
   type TokenType, Bang, BangEqual, Comma, Dot, Eof, Equal, EqualEqual, Greater,
   GreaterEqual, LeftBrace, LeftParen, Less, LessEqual, Minus, Plus, RightBrace,
-  RightParen, Semicolon, Star,
+  RightParen, Semicolon, Slash, Star,
 }
 
 pub type Scanner {
@@ -50,6 +50,7 @@ fn scan_token(scanner: Scanner) -> Scanner {
         "=" -> peek_add_token(scanner, "=", Equal, EqualEqual)
         "<" -> peek_add_token(scanner, "=", Less, LessEqual)
         ">" -> peek_add_token(scanner, "=", Greater, GreaterEqual)
+        "/" -> handle_slash(scanner)
 
         _ -> add_error(scanner, "Unexpected character: " <> token)
       }
@@ -94,5 +95,21 @@ fn peek_add_token(
         t if t == expected -> add_token(peeked_scanner, tt_if_match)
         _ -> add_token(scanner, tt_if_not_match)
       }
+  }
+}
+
+fn handle_slash(scanner: Scanner) -> Scanner {
+  case advance_token(scanner) {
+    None -> add_token(scanner, Slash)
+    Some(#("/", peeked_scanner)) -> consume_until_newline(peeked_scanner)
+    _ -> add_token(scanner, Slash)
+  }
+}
+
+fn consume_until_newline(scanner: Scanner) -> Scanner {
+  case advance_token(scanner) {
+    None -> scanner
+    Some(#("\n", peeked_scanner)) -> peeked_scanner
+    Some(#(_, peeked_scanner)) -> consume_until_newline(peeked_scanner)
   }
 }

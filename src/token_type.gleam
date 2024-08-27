@@ -9,6 +9,7 @@ pub type TokenType {
   Minus
   Plus
   Semicolon
+  Slash
   Star
 
   // One or two character tokens.
@@ -36,6 +37,7 @@ pub fn to_string(token_type: TokenType) -> String {
     Minus -> "MINUS"
     Plus -> "PLUS"
     Semicolon -> "SEMICOLON"
+    Slash -> "SLASH"
     Star -> "STAR"
 
     Bang -> "BANG"
