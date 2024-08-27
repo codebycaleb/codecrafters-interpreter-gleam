@@ -51,6 +51,8 @@ fn scan_token(scanner: Scanner) -> Scanner {
         "<" -> peek_add_token(scanner, "=", Less, LessEqual)
         ">" -> peek_add_token(scanner, "=", Greater, GreaterEqual)
         "/" -> handle_slash(scanner)
+        " " | "\r" | "\t" -> scan_token(Scanner(..scanner, acc: []))
+        "\n" -> scan_token(Scanner(..scanner, acc: [], line: scanner.line + 1))
 
         _ -> add_error(scanner, "Unexpected character: " <> token)
       }
