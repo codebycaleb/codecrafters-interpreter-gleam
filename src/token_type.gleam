@@ -11,6 +11,10 @@ pub type TokenType {
   Semicolon
   Star
 
+  // One or two character tokens.
+  Equal
+  EqualEqual
+
   // End of file.
   Eof
 }
@@ -27,6 +31,10 @@ pub fn to_string(token_type: TokenType) -> String {
     Plus -> "PLUS"
     Semicolon -> "SEMICOLON"
     Star -> "STAR"
+
+    Equal -> "EQUAL"
+    EqualEqual -> "EQUAL_EQUAL"
+
     Eof -> "EOF"
   }
 }

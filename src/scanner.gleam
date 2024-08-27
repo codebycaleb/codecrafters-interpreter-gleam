@@ -41,6 +41,13 @@ fn scan_token(scanner: Scanner) -> Scanner {
         "+" -> add_token(scanner, token_type.Plus)
         ";" -> add_token(scanner, token_type.Semicolon)
         "*" -> add_token(scanner, token_type.Star)
+        "=" ->
+          add_peeked_token(
+            scanner,
+            "=",
+            token_type.Equal,
+            token_type.EqualEqual,
+          )
         _ -> add_error(scanner, "Unexpected character: " <> token)
       }
   }
@@ -69,4 +76,20 @@ fn add_error(scanner: Scanner, message: String) -> Scanner {
   let line = scanner.line
   let error = "[line " <> int.to_string(line) <> "] Error: " <> message
   Scanner(..scanner, errors: [error, ..scanner.errors])
+}
+
+fn add_peeked_token(
+  scanner: Scanner,
+  expected: String,
+  token_type: TokenType,
+  token_type2: TokenType,
+) -> Scanner {
+  case advance_token(scanner) {
+    None -> add_token(scanner, token_type)
+    Some(#(token, peeked_scanner)) ->
+      case token {
+        t if t == expected -> add_token(peeked_scanner, token_type2)
+        _ -> add_token(scanner, token_type)
+      }
+  }
 }
