@@ -1,4 +1,5 @@
 import gleam/int
+import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/string
 import token.{type Token, BasicToken}
@@ -41,13 +42,10 @@ fn scan_token(scanner: Scanner) -> Scanner {
         "+" -> add_token(scanner, token_type.Plus)
         ";" -> add_token(scanner, token_type.Semicolon)
         "*" -> add_token(scanner, token_type.Star)
+        "!" ->
+          peek_add_token(scanner, "=", token_type.Bang, token_type.BangEqual)
         "=" ->
-          add_peeked_token(
-            scanner,
-            "=",
-            token_type.Equal,
-            token_type.EqualEqual,
-          )
+          peek_add_token(scanner, "=", token_type.Equal, token_type.EqualEqual)
         _ -> add_error(scanner, "Unexpected character: " <> token)
       }
   }
@@ -65,7 +63,7 @@ fn advance_token(scanner: Scanner) -> Option(#(String, Scanner)) {
 }
 
 fn add_token(scanner: Scanner, token_type: TokenType) -> Scanner {
-  let lexeme = string.concat(scanner.acc)
+  let lexeme = scanner.acc |> list.reverse |> string.concat
   let literal = Nil
   let line = scanner.line
   let token = BasicToken(token_type, lexeme, literal, line)
@@ -78,7 +76,7 @@ fn add_error(scanner: Scanner, message: String) -> Scanner {
   Scanner(..scanner, errors: [error, ..scanner.errors])
 }
 
-fn add_peeked_token(
+fn peek_add_token(
   scanner: Scanner,
   expected: String,
   token_type: TokenType,

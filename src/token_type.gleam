@@ -12,6 +12,8 @@ pub type TokenType {
   Star
 
   // One or two character tokens.
+  Bang
+  BangEqual
   Equal
   EqualEqual
 
@@ -32,6 +34,8 @@ pub fn to_string(token_type: TokenType) -> String {
     Semicolon -> "SEMICOLON"
     Star -> "STAR"
 
+    Bang -> "BANG"
+    BangEqual -> "BANG_EQUAL"
     Equal -> "EQUAL"
     EqualEqual -> "EQUAL_EQUAL"
 
