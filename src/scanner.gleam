@@ -3,7 +3,11 @@ import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/string
 import token.{type Token, BasicToken}
-import token_type.{type TokenType}
+import token_type.{
+  type TokenType, Bang, BangEqual, Comma, Dot, Eof, Equal, EqualEqual, Greater,
+  GreaterEqual, LeftBrace, LeftParen, Less, LessEqual, Minus, Plus, RightBrace,
+  RightParen, Semicolon, Star,
+}
 
 pub type Scanner {
   Scanner(
@@ -22,30 +26,31 @@ pub fn new(source: String) -> Scanner {
 pub fn scan_tokens(scanner: Scanner) -> Scanner {
   let scanner = scan_token(scanner)
   case scanner.tokens {
-    [BasicToken(token_type.Eof, _, _, _), ..] -> scanner
+    [BasicToken(Eof, _, _, _), ..] -> scanner
     _ -> scan_tokens(Scanner(..scanner, acc: []))
   }
 }
 
 fn scan_token(scanner: Scanner) -> Scanner {
   case advance_token(scanner) {
-    None -> add_token(scanner, token_type.Eof)
+    None -> add_token(scanner, Eof)
     Some(#(token, scanner)) ->
       case token {
-        "(" -> add_token(scanner, token_type.LeftParen)
-        ")" -> add_token(scanner, token_type.RightParen)
-        "{" -> add_token(scanner, token_type.LeftBrace)
-        "}" -> add_token(scanner, token_type.RightBrace)
-        "," -> add_token(scanner, token_type.Comma)
-        "." -> add_token(scanner, token_type.Dot)
-        "-" -> add_token(scanner, token_type.Minus)
-        "+" -> add_token(scanner, token_type.Plus)
-        ";" -> add_token(scanner, token_type.Semicolon)
-        "*" -> add_token(scanner, token_type.Star)
-        "!" ->
-          peek_add_token(scanner, "=", token_type.Bang, token_type.BangEqual)
-        "=" ->
-          peek_add_token(scanner, "=", token_type.Equal, token_type.EqualEqual)
+        "(" -> add_token(scanner, LeftParen)
+        ")" -> add_token(scanner, RightParen)
+        "{" -> add_token(scanner, LeftBrace)
+        "}" -> add_token(scanner, RightBrace)
+        "," -> add_token(scanner, Comma)
+        "." -> add_token(scanner, Dot)
+        "-" -> add_token(scanner, Minus)
+        "+" -> add_token(scanner, Plus)
+        ";" -> add_token(scanner, Semicolon)
+        "*" -> add_token(scanner, Star)
+        "!" -> peek_add_token(scanner, "=", Bang, BangEqual)
+        "=" -> peek_add_token(scanner, "=", Equal, EqualEqual)
+        "<" -> peek_add_token(scanner, "=", Less, LessEqual)
+        ">" -> peek_add_token(scanner, "=", Greater, GreaterEqual)
+
         _ -> add_error(scanner, "Unexpected character: " <> token)
       }
   }
@@ -79,15 +84,15 @@ fn add_error(scanner: Scanner, message: String) -> Scanner {
 fn peek_add_token(
   scanner: Scanner,
   expected: String,
-  token_type: TokenType,
-  token_type2: TokenType,
+  tt_if_not_match: TokenType,
+  tt_if_match: TokenType,
 ) -> Scanner {
   case advance_token(scanner) {
-    None -> add_token(scanner, token_type)
+    None -> add_token(scanner, tt_if_not_match)
     Some(#(token, peeked_scanner)) ->
       case token {
-        t if t == expected -> add_token(peeked_scanner, token_type2)
-        _ -> add_token(scanner, token_type)
+        t if t == expected -> add_token(peeked_scanner, tt_if_match)
+        _ -> add_token(scanner, tt_if_not_match)
       }
   }
 }

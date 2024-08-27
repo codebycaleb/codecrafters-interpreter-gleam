@@ -16,6 +16,10 @@ pub type TokenType {
   BangEqual
   Equal
   EqualEqual
+  Less
+  LessEqual
+  Greater
+  GreaterEqual
 
   // End of file.
   Eof
@@ -38,6 +42,10 @@ pub fn to_string(token_type: TokenType) -> String {
     BangEqual -> "BANG_EQUAL"
     Equal -> "EQUAL"
     EqualEqual -> "EQUAL_EQUAL"
+    Less -> "LESS"
+    LessEqual -> "LESS_EQUAL"
+    Greater -> "GREATER"
+    GreaterEqual -> "GREATER_EQUAL"
 
     Eof -> "EOF"
   }
