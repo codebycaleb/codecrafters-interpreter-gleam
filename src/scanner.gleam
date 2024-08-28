@@ -6,8 +6,8 @@ import gleam/string
 import token.{type ProcessedToken, Token}
 import token_type.{
   type TokenType, Bang, BangEqual, Comma, Dot, Eof, Equal, EqualEqual, Greater,
-  GreaterEqual, LeftBrace, LeftParen, Less, LessEqual, Minus, Number, Plus,
-  RightBrace, RightParen, Semicolon, Slash, Star, String,
+  GreaterEqual, Identifier, LeftBrace, LeftParen, Less, LessEqual, Minus, Number,
+  Plus, RightBrace, RightParen, Semicolon, Slash, Star, String,
 }
 
 pub type Scanner {
@@ -58,7 +58,11 @@ fn scan_token(scanner: Scanner) -> Scanner {
         c -> {
           case is_digit(c) {
             True -> handle_number(scanner)
-            False -> add_error(scanner, "Unexpected character: " <> token)
+            False ->
+              case is_alpha(c) {
+                True -> handle_identifier(scanner)
+                False -> add_error(scanner, "Unexpected character: " <> token)
+              }
           }
         }
       }
@@ -150,9 +154,19 @@ fn consume_until_quote(scanner: Scanner) -> Scanner {
   }
 }
 
-fn is_digit(string: String) -> Bool {
-  case string {
+fn is_digit(str: String) -> Bool {
+  case str {
     "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" -> True
+    _ -> False
+  }
+}
+
+fn is_alpha(str: String) -> Bool {
+  case string.to_utf_codepoints(str) {
+    [c] -> {
+      let i = string.utf_codepoint_to_int(c)
+      i >= 65 && i <= 90 || i == 95 || i >= 97 && i <= 122
+    }
     _ -> False
   }
 }
@@ -180,6 +194,21 @@ fn consume_until_non_digit(scanner: Scanner) -> Scanner {
     Some(#(c, scanned)) ->
       case is_digit(c) {
         True -> consume_until_non_digit(scanned)
+        False -> scanner
+      }
+    None -> scanner
+  }
+}
+
+fn handle_identifier(scanner: Scanner) -> Scanner {
+  add_token(consume_until_non_alphanumeric(scanner), Identifier)
+}
+
+fn consume_until_non_alphanumeric(scanner: Scanner) -> Scanner {
+  case advance_token(scanner) {
+    Some(#(c, scanned)) ->
+      case is_alpha(c) || is_digit(c) {
+        True -> consume_until_non_alphanumeric(scanned)
         False -> scanner
       }
     None -> scanner

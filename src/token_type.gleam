@@ -23,6 +23,7 @@ pub type TokenType {
   GreaterEqual
 
   // Literals.
+  Identifier
   String
   Number
 
@@ -53,6 +54,7 @@ pub fn to_string(token_type: TokenType) -> String {
     Greater -> "GREATER"
     GreaterEqual -> "GREATER_EQUAL"
 
+    Identifier -> "IDENTIFIER"
     String -> "STRING"
     Number -> "NUMBER"
 
