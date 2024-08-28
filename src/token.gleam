@@ -1,11 +1,9 @@
 import gleam/float
-import gleam/int
 import token_type.{type TokenType}
 
 pub type Literal {
   Nil
-  Int(Int)
-  Float(Float)
+  Number(Float)
   String(String)
 }
 
@@ -25,8 +23,7 @@ pub fn to_string(token: ProcessedToken) -> String {
 fn literal_to_string(literal: Literal) -> String {
   case literal {
     Nil -> "null"
-    Int(i) -> int.to_string(i)
-    Float(f) -> float.to_string(f)
+    Number(f) -> float.to_string(f)
     String(s) -> s
   }
 }

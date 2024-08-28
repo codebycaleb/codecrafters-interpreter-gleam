@@ -1,3 +1,4 @@
+import gleam/float
 import gleam/int
 import gleam/list
 import gleam/option.{type Option, None, Some}
@@ -5,8 +6,8 @@ import gleam/string
 import token.{type ProcessedToken, Token}
 import token_type.{
   type TokenType, Bang, BangEqual, Comma, Dot, Eof, Equal, EqualEqual, Greater,
-  GreaterEqual, LeftBrace, LeftParen, Less, LessEqual, Minus, Plus, RightBrace,
-  RightParen, Semicolon, Slash, Star, String,
+  GreaterEqual, LeftBrace, LeftParen, Less, LessEqual, Minus, Number, Plus,
+  RightBrace, RightParen, Semicolon, Slash, Star, String,
 }
 
 pub type Scanner {
@@ -54,8 +55,12 @@ fn scan_token(scanner: Scanner) -> Scanner {
         " " | "\r" | "\t" -> scanner
         "\n" -> handle_newline(scanner)
         "\"" -> handle_string(scanner)
-
-        _ -> add_error(scanner, "Unexpected character: " <> token)
+        c -> {
+          case is_digit(c) {
+            True -> handle_number(scanner)
+            False -> add_error(scanner, "Unexpected character: " <> token)
+          }
+        }
       }
   }
   // clear acc
@@ -78,6 +83,15 @@ fn add_token(scanner: Scanner, token_type: TokenType) -> Scanner {
   let literal = case token_type {
     String ->
       token.String(lexeme |> string.drop_left(1) |> string.drop_right(1))
+    Number ->
+      case float.parse(lexeme) {
+        Ok(f) -> token.Number(f)
+        Error(_) ->
+          case int.parse(lexeme) {
+            Ok(i) -> token.Number(int.to_float(i))
+            Error(_) -> panic
+          }
+      }
     _ -> token.Nil
   }
   let line = scanner.line
@@ -133,6 +147,42 @@ fn consume_until_quote(scanner: Scanner) -> Scanner {
     Some(#("\n", scanned)) -> consume_until_quote(handle_newline(scanned))
     Some(#(_, scanned)) -> consume_until_quote(scanned)
     None -> add_error(scanner, "Unterminated string.")
+  }
+}
+
+fn is_digit(string: String) -> Bool {
+  case string {
+    "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" -> True
+    _ -> False
+  }
+}
+
+fn handle_number(scanner: Scanner) -> Scanner {
+  let int_scanner = consume_until_non_digit(scanner)
+  let float_scanner = case advance_token(int_scanner) {
+    Some(#(".", scanner_with_dot)) -> {
+      case advance_token(scanner_with_dot) {
+        Some(#(c, fractional_scanner)) ->
+          case is_digit(c) {
+            True -> consume_until_non_digit(fractional_scanner)
+            False -> int_scanner
+          }
+        None -> int_scanner
+      }
+    }
+    _ -> int_scanner
+  }
+  add_token(float_scanner, Number)
+}
+
+fn consume_until_non_digit(scanner: Scanner) -> Scanner {
+  case advance_token(scanner) {
+    Some(#(c, scanned)) ->
+      case is_digit(c) {
+        True -> consume_until_non_digit(scanned)
+        False -> scanner
+      }
+    None -> scanner
   }
 }
 

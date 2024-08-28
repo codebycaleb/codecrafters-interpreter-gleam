@@ -24,6 +24,7 @@ pub type TokenType {
 
   // Literals.
   String
+  Number
 
   // End of file.
   Eof
@@ -53,6 +54,7 @@ pub fn to_string(token_type: TokenType) -> String {
     GreaterEqual -> "GREATER_EQUAL"
 
     String -> "STRING"
+    Number -> "NUMBER"
 
     Eof -> "EOF"
   }
