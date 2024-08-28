@@ -22,6 +22,9 @@ pub type TokenType {
   Greater
   GreaterEqual
 
+  // Literals.
+  String
+
   // End of file.
   Eof
 }
@@ -48,6 +51,8 @@ pub fn to_string(token_type: TokenType) -> String {
     LessEqual -> "LESS_EQUAL"
     Greater -> "GREATER"
     GreaterEqual -> "GREATER_EQUAL"
+
+    String -> "STRING"
 
     Eof -> "EOF"
   }

@@ -52,7 +52,7 @@ fn run(contents: String) {
   scanned
 }
 
-fn print_tokens(tokens: List(token.Token)) {
+fn print_tokens(tokens: List(token.ProcessedToken)) {
   tokens
   |> list.reverse
   |> list.map(token.to_string)

@@ -2,17 +2,17 @@ import gleam/int
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/string
-import token.{type Token, BasicToken}
+import token.{type ProcessedToken, Token}
 import token_type.{
   type TokenType, Bang, BangEqual, Comma, Dot, Eof, Equal, EqualEqual, Greater,
   GreaterEqual, LeftBrace, LeftParen, Less, LessEqual, Minus, Plus, RightBrace,
-  RightParen, Semicolon, Slash, Star,
+  RightParen, Semicolon, Slash, Star, String,
 }
 
 pub type Scanner {
   Scanner(
     source: String,
-    tokens: List(Token),
+    tokens: List(ProcessedToken),
     errors: List(String),
     acc: List(String),
     line: Int,
@@ -26,7 +26,7 @@ pub fn new(source: String) -> Scanner {
 pub fn scan_tokens(scanner: Scanner) -> Scanner {
   let scanner = scan_token(scanner)
   case scanner.tokens {
-    [BasicToken(Eof, _, _, _), ..] -> scanner
+    [Token(Eof, ..), ..] -> scanner
     _ -> scan_tokens(Scanner(..scanner, acc: []))
   }
 }
@@ -53,6 +53,7 @@ fn scan_token(scanner: Scanner) -> Scanner {
         "/" -> handle_slash(scanner)
         " " | "\r" | "\t" -> scanner
         "\n" -> handle_newline(scanner)
+        "\"" -> handle_string(scanner)
 
         _ -> add_error(scanner, "Unexpected character: " <> token)
       }
@@ -74,9 +75,13 @@ fn advance_token(scanner: Scanner) -> Option(#(String, Scanner)) {
 
 fn add_token(scanner: Scanner, token_type: TokenType) -> Scanner {
   let lexeme = scanner.acc |> list.reverse |> string.concat
-  let literal = Nil
+  let literal = case token_type {
+    String ->
+      token.String(lexeme |> string.drop_left(1) |> string.drop_right(1))
+    _ -> token.Nil
+  }
   let line = scanner.line
-  let token = BasicToken(token_type, lexeme, literal, line)
+  let token = Token(token_type, lexeme, literal, line)
   Scanner(..scanner, tokens: [token, ..scanner.tokens])
 }
 
@@ -115,6 +120,19 @@ fn consume_until_newline(scanner: Scanner) -> Scanner {
     None -> scanner
     Some(#("\n", peeked_scanner)) -> handle_newline(peeked_scanner)
     Some(#(_, peeked_scanner)) -> consume_until_newline(peeked_scanner)
+  }
+}
+
+fn handle_string(scanner: Scanner) -> Scanner {
+  consume_until_quote(scanner)
+}
+
+fn consume_until_quote(scanner: Scanner) -> Scanner {
+  case advance_token(scanner) {
+    Some(#("\"", scanned)) -> add_token(scanned, String)
+    Some(#("\n", scanned)) -> consume_until_quote(handle_newline(scanned))
+    Some(#(_, scanned)) -> consume_until_quote(scanned)
+    None -> add_error(scanner, "Unterminated string.")
   }
 }
 
