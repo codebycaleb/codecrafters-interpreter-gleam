@@ -6,8 +6,8 @@ import gleam/string
 import token.{type ProcessedToken, Token}
 import token_type.{
   type TokenType, Bang, BangEqual, Comma, Dot, Eof, Equal, EqualEqual, Greater,
-  GreaterEqual, Identifier, LeftBrace, LeftParen, Less, LessEqual, Minus, Number,
-  Plus, RightBrace, RightParen, Semicolon, Slash, Star, String,
+  GreaterEqual, LeftBrace, LeftParen, Less, LessEqual, Minus, Number, Plus,
+  RightBrace, RightParen, Semicolon, Slash, Star, String,
 }
 
 pub type Scanner {
@@ -30,6 +30,10 @@ pub fn scan_tokens(scanner: Scanner) -> Scanner {
     [Token(Eof, ..), ..] -> scanner
     _ -> scan_tokens(Scanner(..scanner, acc: []))
   }
+}
+
+pub fn current_lexeme(scanner: Scanner) -> String {
+  scanner.acc |> list.reverse |> string.concat
 }
 
 fn scan_token(scanner: Scanner) -> Scanner {
@@ -83,7 +87,7 @@ fn advance_token(scanner: Scanner) -> Option(#(String, Scanner)) {
 }
 
 fn add_token(scanner: Scanner, token_type: TokenType) -> Scanner {
-  let lexeme = scanner.acc |> list.reverse |> string.concat
+  let lexeme = current_lexeme(scanner)
   let literal = case token_type {
     String ->
       token.String(lexeme |> string.drop_left(1) |> string.drop_right(1))
@@ -201,7 +205,9 @@ fn consume_until_non_digit(scanner: Scanner) -> Scanner {
 }
 
 fn handle_identifier(scanner: Scanner) -> Scanner {
-  add_token(consume_until_non_alphanumeric(scanner), Identifier)
+  let scanner = consume_until_non_alphanumeric(scanner)
+  let token_type = token_type.identifier_to_token_type(current_lexeme(scanner))
+  add_token(scanner, token_type)
 }
 
 fn consume_until_non_alphanumeric(scanner: Scanner) -> Scanner {

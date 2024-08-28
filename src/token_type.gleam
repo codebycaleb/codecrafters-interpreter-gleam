@@ -27,6 +27,24 @@ pub type TokenType {
   String
   Number
 
+  // Keywords.
+  And
+  Class
+  Else
+  False
+  Fun
+  For
+  If
+  Nil
+  Or
+  Print
+  Return
+  Super
+  This
+  True
+  Var
+  While
+
   // End of file.
   Eof
 }
@@ -58,6 +76,46 @@ pub fn to_string(token_type: TokenType) -> String {
     String -> "STRING"
     Number -> "NUMBER"
 
+    And -> "AND"
+    Class -> "CLASS"
+    Else -> "ELSE"
+    False -> "FALSE"
+    Fun -> "FUN"
+    For -> "FOR"
+    If -> "IF"
+    Nil -> "NIL"
+    Or -> "OR"
+    Print -> "PRINT"
+    Return -> "RETURN"
+    Super -> "SUPER"
+    This -> "THIS"
+    True -> "TRUE"
+    Var -> "VAR"
+    While -> "WHILE"
+
     Eof -> "EOF"
+  }
+}
+
+pub fn identifier_to_token_type(identifier: String) -> TokenType {
+  case identifier {
+    "and" -> And
+    "class" -> Class
+    "else" -> Else
+    "false" -> False
+    "fun" -> Fun
+    "for" -> For
+    "if" -> If
+    "nil" -> Nil
+    "or" -> Or
+    "print" -> Print
+    "return" -> Return
+    "super" -> Super
+    "this" -> This
+    "true" -> True
+    "var" -> Var
+    "while" -> While
+
+    _ -> Identifier
   }
 }
