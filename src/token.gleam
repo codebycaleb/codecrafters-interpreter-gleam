@@ -7,11 +7,11 @@ pub type Literal {
   String(String)
 }
 
-pub type ProcessedToken {
+pub type Token {
   Token(token_type: TokenType, lexeme: String, literal: Literal, line: Int)
 }
 
-pub fn to_string(token: ProcessedToken) -> String {
+pub fn to_string(token: Token) -> String {
   let Token(token_type, lexeme, literal, _) = token
   token_type.to_string(token_type)
   <> " "

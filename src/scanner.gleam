@@ -3,7 +3,7 @@ import gleam/int
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/string
-import token.{type ProcessedToken, Token}
+import token.{type Token, Token}
 import token_type.{
   type TokenType, Bang, BangEqual, Comma, Dot, Eof, Equal, EqualEqual, Greater,
   GreaterEqual, LeftBrace, LeftParen, Less, LessEqual, Minus, Number, Plus,
@@ -13,7 +13,7 @@ import token_type.{
 pub type Scanner {
   Scanner(
     source: String,
-    tokens: List(ProcessedToken),
+    tokens: List(Token),
     errors: List(String),
     acc: List(String),
     line: Int,

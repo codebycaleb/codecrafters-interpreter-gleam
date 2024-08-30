@@ -5,7 +5,7 @@ import argv
 import simplifile
 
 import scanner
-import token
+import token.{type Token}
 
 pub fn main() {
   let args = argv.load().arguments
@@ -52,7 +52,7 @@ fn run(contents: String) {
   scanned
 }
 
-fn print_tokens(tokens: List(token.ProcessedToken)) {
+fn print_tokens(tokens: List(Token)) {
   tokens
   |> list.reverse
   |> list.map(token.to_string)
