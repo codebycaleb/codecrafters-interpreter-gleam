@@ -12,7 +12,12 @@ pub fn main() {
 
   case args {
     ["tokenize", filename] -> {
-      run_file(filename)
+      filename
+      |> read_file
+      |> scan_file
+      |> output_scanner_results
+      |> check_for_scanner_errors
+      exit(0)
     }
     _ -> {
       io.println_error("Usage: ./lox.sh tokenize <filename>")
@@ -21,35 +26,35 @@ pub fn main() {
   }
 }
 
-fn run_file(filename: String) {
+fn check_for_scanner_errors(scanner: scanner.Scanner) {
+  case scanner.errors {
+    [] -> Nil
+    _ -> exit(65)
+  }
+  scanner
+}
+
+fn read_file(filename: String) {
   case simplifile.read(filename) {
     Ok(contents) -> {
-      case run(contents) {
-        scanner.Scanner(errors: [], ..) -> {
-          exit(0)
-        }
-        _ -> {
-          exit(65)
-        }
-      }
+      contents
     }
-    Error(error) -> {
-      io.println_error("Error: " <> simplifile.describe_error(error))
-      exit(1)
+    Error(_) -> {
+      ""
     }
   }
 }
 
-fn run(contents: String) {
-  let scanned =
-    contents
-    |> scanner.new
-    |> scanner.scan_tokens
+fn scan_file(contents: String) {
+  contents
+  |> scanner.new
+  |> scanner.scan_tokens
+}
 
-  print_errors(scanned.errors)
-  print_tokens(scanned.tokens)
-
-  scanned
+fn output_scanner_results(scanner: scanner.Scanner) {
+  print_tokens(scanner.tokens)
+  print_errors(scanner.errors)
+  scanner
 }
 
 fn print_tokens(tokens: List(Token)) {
