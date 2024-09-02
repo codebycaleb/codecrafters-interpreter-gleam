@@ -1,13 +1,14 @@
+import gleam/dynamic
 import gleam/float
 import gleam/int
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/string
-import token.{type Token, Token}
-import token_type.{
-  type TokenType, Bang, BangEqual, Comma, Dot, Eof, Equal, EqualEqual, Greater,
-  GreaterEqual, LeftBrace, LeftParen, Less, LessEqual, Minus, Number, Plus,
-  RightBrace, RightParen, Semicolon, Slash, Star, String,
+import token.{
+  type Token, type TokenType, Bang, BangEqual, Comma, Dot, Eof, Equal,
+  EqualEqual, Greater, GreaterEqual, LeftBrace, LeftParen, Less, LessEqual,
+  Minus, Number, Plus, RightBrace, RightParen, Semicolon, Slash, Star, String,
+  Token,
 }
 
 pub type Scanner {
@@ -90,17 +91,17 @@ fn add_token(scanner: Scanner, token_type: TokenType) -> Scanner {
   let lexeme = current_lexeme(scanner)
   let literal = case token_type {
     String ->
-      token.String(lexeme |> string.drop_left(1) |> string.drop_right(1))
+      dynamic.from(lexeme |> string.drop_left(1) |> string.drop_right(1))
     Number ->
       case float.parse(lexeme) {
-        Ok(f) -> token.Number(f)
+        Ok(f) -> dynamic.from(f)
         Error(_) ->
           case int.parse(lexeme) {
-            Ok(i) -> token.Number(int.to_float(i))
+            Ok(i) -> dynamic.from(int.to_float(i))
             Error(_) -> panic
           }
       }
-    _ -> token.Nil
+    _ -> dynamic.from(Nil)
   }
   let line = scanner.line
   let token = Token(token_type, lexeme, literal, line)
@@ -206,7 +207,7 @@ fn consume_until_non_digit(scanner: Scanner) -> Scanner {
 
 fn handle_identifier(scanner: Scanner) -> Scanner {
   let scanner = consume_until_non_alphanumeric(scanner)
-  let token_type = token_type.identifier_to_token_type(current_lexeme(scanner))
+  let token_type = token.identifier_to_token_type(current_lexeme(scanner))
   add_token(scanner, token_type)
 }
 
