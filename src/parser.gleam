@@ -1,5 +1,6 @@
 import expr.{type Expr}
-import token.{type Token}
+import gleam/list
+import token.{type Token, type TokenType}
 
 type ParseResult {
   ParseResult(expr: Expr, rest: List(Token))
@@ -15,76 +16,49 @@ pub fn parse(tokens: List(Token)) -> Expr {
 }
 
 fn parse_token(token, rest) -> ParseResult {
-  comparison(token, rest)
+  equality(token, rest)
+}
+
+fn equality(token: Token, rest: List(Token)) -> ParseResult {
+  let ParseResult(expr, rest) = comparison(token, rest)
+  recurse(expr, rest, [token.BangEqual, token.EqualEqual], comparison)
 }
 
 fn comparison(token: Token, rest: List(Token)) -> ParseResult {
   let ParseResult(expr, rest) = term(token, rest)
-  comparison_recurse(expr, rest)
-}
-
-fn comparison_recurse(left: Expr, rest: List(Token)) -> ParseResult {
-  case rest {
-    [maybe_comparison, ..after_comparison] -> {
-      case maybe_comparison.token_type {
-        token.Greater | token.GreaterEqual | token.Less | token.LessEqual -> {
-          case after_comparison {
-            [next, ..rest] -> {
-              let op = maybe_comparison
-              let ParseResult(right, rest) = term(next, rest)
-              comparison_recurse(expr.Binary(op, left, right), rest)
-            }
-            _ -> panic
-          }
-        }
-        _ -> ParseResult(left, rest)
-      }
-    }
-    _ -> ParseResult(left, rest)
-  }
+  recurse(
+    expr,
+    rest,
+    [token.Greater, token.GreaterEqual, token.Less, token.LessEqual],
+    term,
+  )
 }
 
 fn term(token: Token, rest: List(Token)) -> ParseResult {
   let ParseResult(expr, rest) = factor(token, rest)
-  term_recurse(expr, rest)
-}
-
-fn term_recurse(left: Expr, rest: List(Token)) -> ParseResult {
-  case rest {
-    [maybe_term, ..after_term] -> {
-      case maybe_term.token_type {
-        token.Minus | token.Plus -> {
-          case after_term {
-            [next, ..rest] -> {
-              let op = maybe_term
-              let ParseResult(right, rest) = factor(next, rest)
-              term_recurse(expr.Binary(op, left, right), rest)
-            }
-            _ -> panic
-          }
-        }
-        _ -> ParseResult(left, rest)
-      }
-    }
-    _ -> ParseResult(left, rest)
-  }
+  recurse(expr, rest, [token.Minus, token.Plus], factor)
 }
 
 fn factor(token: Token, rest: List(Token)) -> ParseResult {
   let ParseResult(expr, rest) = unary(token, rest)
-  factor_recurse(expr, rest)
+  recurse(expr, rest, [token.Slash, token.Star], unary)
 }
 
-fn factor_recurse(left: Expr, rest: List(Token)) -> ParseResult {
+fn recurse(
+  left: Expr,
+  rest: List(Token),
+  ops: List(TokenType),
+  next_fn,
+) -> ParseResult {
   case rest {
-    [maybe_factor, ..after_factor] -> {
-      case maybe_factor.token_type {
-        token.Star | token.Slash -> {
-          case after_factor {
+    [maybe_op, ..after_op] -> {
+      case list.find(ops, fn(x) { x == maybe_op.token_type }) {
+        Ok(_) -> {
+          case after_op {
             [next, ..rest] -> {
-              let op = maybe_factor
-              let ParseResult(right, rest) = unary(next, rest)
-              factor_recurse(expr.Binary(op, left, right), rest)
+              let op = maybe_op
+              let ParseResult(right, rest) = next_fn(next, rest)
+              recurse(expr.Binary(op, left, right), rest, ops, next_fn)
             }
             _ -> panic
           }
