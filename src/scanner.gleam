@@ -28,7 +28,12 @@ pub fn new(source: String) -> Scanner {
 pub fn scan_tokens(scanner: Scanner) -> Scanner {
   let scanner = scan_token(scanner)
   case scanner.tokens {
-    [Token(Eof, ..), ..] -> scanner
+    [Token(Eof, ..), ..] ->
+      Scanner(
+        ..scanner,
+        tokens: list.reverse(scanner.tokens),
+        errors: list.reverse(scanner.errors),
+      )
     _ -> scan_tokens(Scanner(..scanner, acc: []))
   }
 }

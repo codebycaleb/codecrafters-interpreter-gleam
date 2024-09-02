@@ -1,5 +1,7 @@
+import expr
 import gleam/io
 import gleam/list
+import parser
 
 import argv
 import simplifile
@@ -18,6 +20,18 @@ pub fn main() {
       |> output_scanner_results
       |> check_for_scanner_errors
       exit(0)
+    }
+    ["parse", filename] -> {
+      let scanned =
+        filename
+        |> read_file
+        |> scan_file
+        |> check_for_scanner_errors
+
+      case scanned.tokens {
+        [head, ..] -> parser.parse(head) |> expr.to_string |> io.println
+        _ -> exit(65)
+      }
     }
     _ -> {
       io.println_error("Usage: ./lox.sh tokenize <filename>")
@@ -59,14 +73,12 @@ fn output_scanner_results(scanner: scanner.Scanner) {
 
 fn print_tokens(tokens: List(Token)) {
   tokens
-  |> list.reverse
   |> list.map(token.to_string)
   |> list.each(io.println)
 }
 
 fn print_errors(errors: List(String)) {
   errors
-  |> list.reverse
   |> list.each(io.println_error)
 }
 

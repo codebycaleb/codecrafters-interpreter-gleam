@@ -1,6 +1,7 @@
 import gleam/dynamic.{type Dynamic}
 import gleam/float
 import gleam/result
+import gleam/string
 
 pub type Token {
   Token(token_type: TokenType, lexeme: String, literal: Dynamic, line: Int)
@@ -11,7 +12,7 @@ pub fn to_string(token: Token) -> String {
   type_string(token_type) <> " " <> lexeme <> " " <> literal_to_string(literal)
 }
 
-fn literal_to_string(literal: Dynamic) -> String {
+pub fn literal_to_string(literal: Dynamic) -> String {
   case dynamic.classify(literal) {
     "Nil" -> "null"
     "Float" -> literal |> dynamic.float |> result.unwrap(0.0) |> float.to_string
@@ -20,7 +21,12 @@ fn literal_to_string(literal: Dynamic) -> String {
   }
 }
 
-import gleam/string
+pub fn literal_to_float(literal: Dynamic) -> Float {
+  case dynamic.classify(literal) {
+    "Float" -> literal |> dynamic.float |> result.unwrap(0.0)
+    _ -> panic
+  }
+}
 
 pub type TokenType {
   // Single-character tokens.
