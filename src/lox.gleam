@@ -28,10 +28,10 @@ pub fn main() {
         |> scan_file
         |> check_for_scanner_errors
 
-      case scanned.tokens {
-        [head, ..] -> parser.parse(head) |> expr.to_string |> io.println
-        _ -> exit(65)
-      }
+      scanned.tokens
+      |> parser.parse
+      |> expr.to_string
+      |> io.println
     }
     _ -> {
       io.println_error("Usage: ./lox.sh tokenize <filename>")

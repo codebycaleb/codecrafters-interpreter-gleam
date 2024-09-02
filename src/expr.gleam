@@ -13,11 +13,13 @@ pub type Literal {
 pub type Expr {
   Unary(operator: Token, right: Expr)
   Literal(value: Literal)
+  Grouping(expr: Expr)
 }
 
 pub fn to_string(expr: Expr) -> String {
   case expr {
     Literal(literal) -> literal_string(literal)
+    Grouping(expr) -> "(group " <> to_string(expr) <> ")"
     _ -> "unimplemented"
   }
 }
