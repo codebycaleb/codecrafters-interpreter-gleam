@@ -15,7 +15,33 @@ pub fn parse(tokens: List(Token)) -> Expr {
 }
 
 fn parse_token(token, rest) -> ParseResult {
-  factor(token, rest)
+  term(token, rest)
+}
+
+fn term(token: Token, rest: List(Token)) -> ParseResult {
+  let ParseResult(expr, rest) = factor(token, rest)
+  term_recurse(expr, rest)
+}
+
+fn term_recurse(left: Expr, rest: List(Token)) -> ParseResult {
+  case rest {
+    [maybe_term, ..after_term] -> {
+      case maybe_term.token_type {
+        token.Minus | token.Plus -> {
+          case after_term {
+            [next, ..rest] -> {
+              let op = maybe_term
+              let ParseResult(right, rest) = factor(next, rest)
+              term_recurse(expr.Binary(op, left, right), rest)
+            }
+            _ -> panic
+          }
+        }
+        _ -> ParseResult(left, rest)
+      }
+    }
+    _ -> ParseResult(left, rest)
+  }
 }
 
 fn factor(token: Token, rest: List(Token)) -> ParseResult {
