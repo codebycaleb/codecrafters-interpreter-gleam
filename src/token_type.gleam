@@ -1,3 +1,5 @@
+import gleam/string
+
 pub type TokenType {
   // Single-character tokens.
   LeftParen
@@ -55,45 +57,11 @@ pub fn to_string(token_type: TokenType) -> String {
     RightParen -> "RIGHT_PAREN"
     LeftBrace -> "LEFT_BRACE"
     RightBrace -> "RIGHT_BRACE"
-    Comma -> "COMMA"
-    Dot -> "DOT"
-    Minus -> "MINUS"
-    Plus -> "PLUS"
-    Semicolon -> "SEMICOLON"
-    Slash -> "SLASH"
-    Star -> "STAR"
-
-    Bang -> "BANG"
     BangEqual -> "BANG_EQUAL"
-    Equal -> "EQUAL"
     EqualEqual -> "EQUAL_EQUAL"
-    Less -> "LESS"
     LessEqual -> "LESS_EQUAL"
-    Greater -> "GREATER"
     GreaterEqual -> "GREATER_EQUAL"
-
-    Identifier -> "IDENTIFIER"
-    String -> "STRING"
-    Number -> "NUMBER"
-
-    And -> "AND"
-    Class -> "CLASS"
-    Else -> "ELSE"
-    False -> "FALSE"
-    Fun -> "FUN"
-    For -> "FOR"
-    If -> "IF"
-    Nil -> "NIL"
-    Or -> "OR"
-    Print -> "PRINT"
-    Return -> "RETURN"
-    Super -> "SUPER"
-    This -> "THIS"
-    True -> "TRUE"
-    Var -> "VAR"
-    While -> "WHILE"
-
-    Eof -> "EOF"
+    _ -> token_type |> string.inspect |> string.uppercase
   }
 }
 
