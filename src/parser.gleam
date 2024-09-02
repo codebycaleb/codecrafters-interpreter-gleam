@@ -1,40 +1,93 @@
 import expr.{type Expr}
 import token.{type Token}
 
+type ParseResult {
+  ParseResult(expr: Expr, rest: List(Token))
+}
+
 pub fn parse(tokens: List(Token)) -> Expr {
   case tokens {
     [] -> panic
     [token, ..rest] -> {
-      unary(token, rest)
+      parse_token(token, rest).expr
     }
   }
 }
 
-fn unary(token: Token, rest: List(Token)) -> Expr {
+fn parse_token(token, rest) -> ParseResult {
+  factor(token, rest)
+}
+
+fn factor(token: Token, rest: List(Token)) -> ParseResult {
+  let ParseResult(expr, rest) = unary(token, rest)
+  factor_recurse(expr, rest)
+}
+
+fn factor_recurse(left: Expr, rest: List(Token)) -> ParseResult {
+  case rest {
+    [maybe_factor, ..after_factor] -> {
+      case maybe_factor.token_type {
+        token.Star | token.Slash -> {
+          case after_factor {
+            [next, ..rest] -> {
+              let op = maybe_factor
+              let ParseResult(right, rest) = unary(next, rest)
+              factor_recurse(expr.Binary(op, left, right), rest)
+            }
+            _ -> panic
+          }
+        }
+        _ -> ParseResult(left, rest)
+      }
+    }
+    _ -> ParseResult(left, rest)
+  }
+}
+
+fn unary(token: Token, rest: List(Token)) -> ParseResult {
   case token.token_type, rest {
-    token.Bang, [next, ..rest] -> expr.Unary(token, unary(next, rest))
-    token.Minus, [next, ..rest] -> expr.Unary(token, unary(next, rest))
+    token.Bang, [next, ..rest] | token.Minus, [next, ..rest] -> {
+      let ParseResult(right, rest) = unary(next, rest)
+      ParseResult(expr.Unary(token, right), rest)
+    }
     _, _ -> primary(token, rest)
   }
 }
 
-fn primary(token: Token, rest: List(Token)) -> Expr {
+fn primary(token: Token, rest: List(Token)) -> ParseResult {
   case token.token_type {
-    token.False -> expr.Literal(expr.Boolean(False))
-    token.True -> expr.Literal(expr.Boolean(True))
-    token.Nil -> expr.Literal(expr.Nil(Nil))
+    token.False -> ParseResult(expr.Literal(expr.Boolean(False)), rest)
+    token.True -> ParseResult(expr.Literal(expr.Boolean(True)), rest)
+    token.Nil -> ParseResult(expr.Literal(expr.Nil(Nil)), rest)
     token.Number ->
-      expr.Literal(expr.Number(token.literal_to_float(token.literal)))
+      ParseResult(
+        expr.Literal(expr.Number(token.literal_to_float(token.literal))),
+        rest,
+      )
     token.String ->
-      expr.Literal(expr.String(token.literal_to_string(token.literal)))
+      ParseResult(
+        expr.Literal(expr.String(token.literal_to_string(token.literal))),
+        rest,
+      )
     token.LeftParen -> grouping(rest)
     _ -> panic
   }
 }
 
-fn grouping(tokens) {
+fn grouping(tokens: List(Token)) -> ParseResult {
   case tokens {
-    [token, ..rest] -> expr.Grouping(unary(token, rest))
+    [token, ..rest] -> {
+      let ParseResult(expr, rest) = parse_token(token, rest)
+      case rest {
+        [token, ..rest] -> {
+          case token.token_type {
+            token.RightParen -> ParseResult(expr.Grouping(expr), rest)
+            _ -> panic
+          }
+        }
+        _ -> panic
+      }
+    }
     _ -> panic
   }
 }

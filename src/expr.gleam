@@ -13,6 +13,7 @@ pub type Literal {
 pub type Expr {
   Literal(value: Literal)
   Unary(op: Token, right: Expr)
+  Binary(op: Token, left: Expr, right: Expr)
   Grouping(expr: Expr)
 }
 
@@ -20,6 +21,14 @@ pub fn to_string(expr: Expr) -> String {
   case expr {
     Literal(literal) -> literal_string(literal)
     Unary(op, right) -> "(" <> op.lexeme <> " " <> to_string(right) <> ")"
+    Binary(op, left, right) ->
+      "("
+      <> op.lexeme
+      <> " "
+      <> to_string(left)
+      <> " "
+      <> to_string(right)
+      <> ")"
     Grouping(expr) -> "(group " <> to_string(expr) <> ")"
   }
 }
