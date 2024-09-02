@@ -15,7 +15,33 @@ pub fn parse(tokens: List(Token)) -> Expr {
 }
 
 fn parse_token(token, rest) -> ParseResult {
-  term(token, rest)
+  comparison(token, rest)
+}
+
+fn comparison(token: Token, rest: List(Token)) -> ParseResult {
+  let ParseResult(expr, rest) = term(token, rest)
+  comparison_recurse(expr, rest)
+}
+
+fn comparison_recurse(left: Expr, rest: List(Token)) -> ParseResult {
+  case rest {
+    [maybe_comparison, ..after_comparison] -> {
+      case maybe_comparison.token_type {
+        token.Greater | token.GreaterEqual | token.Less | token.LessEqual -> {
+          case after_comparison {
+            [next, ..rest] -> {
+              let op = maybe_comparison
+              let ParseResult(right, rest) = term(next, rest)
+              comparison_recurse(expr.Binary(op, left, right), rest)
+            }
+            _ -> panic
+          }
+        }
+        _ -> ParseResult(left, rest)
+      }
+    }
+    _ -> ParseResult(left, rest)
+  }
 }
 
 fn term(token: Token, rest: List(Token)) -> ParseResult {
