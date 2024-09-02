@@ -5,8 +5,16 @@ pub fn parse(tokens: List(Token)) -> Expr {
   case tokens {
     [] -> panic
     [token, ..rest] -> {
-      primary(token, rest)
+      unary(token, rest)
     }
+  }
+}
+
+fn unary(token: Token, rest: List(Token)) -> Expr {
+  case token.token_type, rest {
+    token.Bang, [next, ..rest] -> expr.Unary(token, unary(next, rest))
+    token.Minus, [next, ..rest] -> expr.Unary(token, unary(next, rest))
+    _, _ -> primary(token, rest)
   }
 }
 
@@ -26,7 +34,7 @@ fn primary(token: Token, rest: List(Token)) -> Expr {
 
 fn grouping(tokens) {
   case tokens {
-    [token, ..rest] -> expr.Grouping(primary(token, rest))
+    [token, ..rest] -> expr.Grouping(unary(token, rest))
     _ -> panic
   }
 }
