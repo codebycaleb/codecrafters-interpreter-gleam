@@ -19,10 +19,11 @@ pub fn main() {
       |> scan_file
       |> output_scanner_results
       |> check_for_scanner_errors
+
       exit(0)
     }
     ["parse", filename] -> {
-      let scanned =
+      let scanned: scanner.Scanner =
         filename
         |> read_file
         |> scan_file
@@ -30,11 +31,13 @@ pub fn main() {
 
       scanned.tokens
       |> parser.parse
-      |> expr.to_string
-      |> io.println
+      |> output_parser_results
+      |> check_for_parser_errors
+
+      exit(0)
     }
     _ -> {
-      io.println_error("Usage: ./lox.sh tokenize <filename>")
+      io.println_error("Usage: ./lox.sh [tokenize | parse] <filename>")
       exit(1)
     }
   }
@@ -43,9 +46,22 @@ pub fn main() {
 fn check_for_scanner_errors(scanner: scanner.Scanner) {
   case scanner.errors {
     [] -> Nil
-    _ -> exit(65)
+    _ -> {
+      print_errors(scanner.errors)
+      exit(65)
+    }
   }
   scanner
+}
+
+fn check_for_parser_errors(result: Result(expr.Expr, String)) {
+  case result {
+    Ok(_) -> Nil
+    Error(e) -> {
+      io.println_error(e)
+      exit(65)
+    }
+  }
 }
 
 fn read_file(filename: String) {
@@ -67,8 +83,19 @@ fn scan_file(contents: String) {
 
 fn output_scanner_results(scanner: scanner.Scanner) {
   print_tokens(scanner.tokens)
-  print_errors(scanner.errors)
   scanner
+}
+
+fn output_parser_results(result: Result(expr.Expr, String)) {
+  case result {
+    Ok(expr) -> {
+      expr
+      |> expr.to_string
+      |> io.println
+    }
+    Error(_) -> Nil
+  }
+  result
 }
 
 fn print_tokens(tokens: List(Token)) {
